@@ -108,8 +108,8 @@ class Message extends Base {
                 ? 'android'
                 : typeof data.id.id === 'string' &&
                     data.id.id.substring(0, 2) === '3A'
-                  ? 'ios'
-                  : 'web';
+                    ? 'ios'
+                    : 'web';
         /**
          * Indicates if the message was forwarded
          * @type {boolean}
@@ -195,8 +195,8 @@ class Message extends Base {
             data.type === MessageTypes.CONTACT_CARD_MULTI
                 ? data.vcardList.map((c) => c.vcard)
                 : data.type === MessageTypes.CONTACT_CARD
-                  ? [data.body]
-                  : [];
+                    ? [data.body]
+                    : [];
 
         /**
          * Group Invite Data
@@ -205,21 +205,21 @@ class Message extends Base {
         this.inviteV4 =
             data.type === MessageTypes.GROUP_INVITE
                 ? {
-                      inviteCode: data.inviteCode,
-                      inviteCodeExp: data.inviteCodeExp,
-                      groupId: data.inviteGrp,
-                      groupName: data.inviteGrpName,
-                      fromId:
-                          typeof data.from === 'object' &&
-                          '_serialized' in data.from
-                              ? data.from._serialized
-                              : data.from,
-                      toId:
-                          typeof data.to === 'object' &&
-                          '_serialized' in data.to
-                              ? data.to._serialized
-                              : data.to,
-                  }
+                    inviteCode: data.inviteCode,
+                    inviteCodeExp: data.inviteCodeExp,
+                    groupId: data.inviteGrp,
+                    groupName: data.inviteGrpName,
+                    fromId:
+                        typeof data.from === 'object' &&
+                            '_serialized' in data.from
+                            ? data.from._serialized
+                            : data.from,
+                    toId:
+                        typeof data.to === 'object' &&
+                            '_serialized' in data.to
+                            ? data.to._serialized
+                            : data.to,
+                }
                 : undefined;
 
         /**
@@ -337,8 +337,8 @@ class Message extends Base {
             this.isSentCagPollCreation = data.isSentCagPollCreation;
             this.messageSecret = data.messageSecret
                 ? Object.keys(data.messageSecret).map(
-                      (key) => data.messageSecret[key],
-                  )
+                    (key) => data.messageSecret[key],
+                )
                 : [];
         }
 
@@ -514,22 +514,43 @@ class Message extends Base {
     async downloadMedia() {
         if (!this.hasMedia) return undefined;
 
+        const mediaId =
+            this.id._serialized ||
+            this.id.$1 ||
+            `${this.id.fromMe}_${this.id.remote}_${this.id.id}`;
+
+        console.log('[DOWNLOAD MEDIA DEBUG] ID:', mediaId);
+
         const result = await this.client.pupPage.evaluate(async (msgId) => {
+            console.log('[BROWSER] resolveMediaBlob ID:', msgId);
+
             const resolved = await window.WWebJS.resolveMediaBlob(msgId);
+
+            console.log('[BROWSER] resolveMediaBlob result:', !!resolved);
+
             if (!resolved) return null;
 
             const data = await window.WWebJS.arrayBufferToBase64Async(
                 await resolved.blob.arrayBuffer(),
             );
+
             return {
                 data,
                 mimetype: resolved.mimetype,
                 filename: resolved.filename,
                 filesize: resolved.filesize,
             };
-        }, this.id._serialized);
+        }, mediaId);
+
+        console.log('[DOWNLOAD MEDIA DEBUG] Result:', result ? {
+            mimetype: result.mimetype,
+            filename: result.filename,
+            filesize: result.filesize,
+            dataLength: result.data?.length,
+        } : null);
 
         if (!result) return undefined;
+
         return new MessageMedia(
             result.mimetype,
             result.data,
@@ -568,11 +589,11 @@ class Message extends Base {
                 };
             }, this.id._serialized);
         } catch (err) {
-            await blobHandle.dispose().catch(() => {});
+            await blobHandle.dispose().catch(() => { });
             throw err;
         }
         if (!metadata) {
-            await blobHandle.dispose().catch(() => {});
+            await blobHandle.dispose().catch(() => { });
             return undefined;
         }
 
@@ -592,7 +613,7 @@ class Message extends Base {
                     yield Buffer.from(base64, 'base64');
                 }
             } finally {
-                await blobHandle.dispose().catch(() => {});
+                await blobHandle.dispose().catch(() => { });
             }
         }
 
@@ -639,14 +660,14 @@ class Message extends Base {
                         '2.3000.0',
                     )
                         ? Cmd.sendRevokeMsgs(
-                              chat,
-                              { list: [msg], type: 'message' },
-                              { clearMedia: clearMedia },
-                          )
+                            chat,
+                            { list: [msg], type: 'message' },
+                            { clearMedia: clearMedia },
+                        )
                         : Cmd.sendRevokeMsgs(chat, [msg], {
-                              clearMedia: true,
-                              type: msg.id.fromMe ? 'Sender' : 'Admin',
-                          });
+                            clearMedia: true,
+                            type: msg.id.fromMe ? 'Sender' : 'Admin',
+                        });
                 }
 
                 return window.WWebJS.compareWwebVersions(
@@ -655,10 +676,10 @@ class Message extends Base {
                     '2.3000.0',
                 )
                     ? Cmd.sendDeleteMsgs(
-                          chat,
-                          { list: [msg], type: 'message' },
-                          clearMedia,
-                      )
+                        chat,
+                        { list: [msg], type: 'message' },
+                        clearMedia,
+                    )
                     : Cmd.sendDeleteMsgs(chat, [msg], clearMedia);
             },
             this.id._serialized,
@@ -780,7 +801,7 @@ class Message extends Base {
                     },
                     (Date.now() - msg.t * 1000 < 1250 &&
                         Math.floor(Math.random() * (1200 - 1100 + 1)) + 1100) ||
-                        0,
+                    0,
                 );
             });
         }, this.id._serialized);
