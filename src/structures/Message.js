@@ -624,13 +624,14 @@ class Message extends Base {
                             .require('WAWebCollections')
                             .Msg.getMessagesById([msgId])
                     )?.messages?.[0];
+
                 const chat =
-                    window
-                        .require('WAWebCollections')
-                        .Chat.get(msg.id.remote) ||
-                    (await window
-                        .require('WAWebCollections')
-                        .Chat.find(msg.id.remote));
+                    window.require('WAWebCollections').Chat.get(msg.id.remote) ||
+                    (
+                        await window
+                            .require('WAWebCollections')
+                            .Chat.find(msg.id.remote)
+                    );
 
                 const canRevoke =
                     window
@@ -643,40 +644,36 @@ class Message extends Base {
                 const { Cmd } = window.require('WAWebCmd');
 
                 if (everyone && canRevoke) {
-                    return window.WWebJS.compareWwebVersions(
-                        window.Debug.VERSION,
-                        '>=',
-                        '2.3000.0',
-                    )
-                        ? Cmd.sendRevokeMsgs(
-                            chat,
-                            { list: [msg], type: 'message' },
-                            { clearMedia: clearMedia },
-                        )
-                        : Cmd.sendRevokeMsgs(chat, [msg], {
-                            clearMedia: true,
-                            type: msg.id.fromMe ? 'Sender' : 'Admin',
-                        });
+                    return Cmd.sendRevokeMsgs(
+                        chat,
+                        {
+                            list: [msg],
+                            type: 'message'
+                        },
+                        {
+                            clearMedia
+                        }
+                    );
                 }
 
-                return window.WWebJS.compareWwebVersions(
-                    window.Debug.VERSION,
-                    '>=',
-                    '2.3000.0',
-                )
-                    ? Cmd.sendDeleteMsgs(
-                        chat,
-                        { list: [msg], type: 'message' },
-                        clearMedia,
-                    )
-                    : Cmd.sendDeleteMsgs(chat, [msg], clearMedia);
+                return Cmd.sendDeleteMsgs(
+                    chat,
+                    {
+                        list: [msg],
+                        type: 'message'
+                    },
+                    clearMedia
+                );
+
             },
-            this.id._serialized,
+
+            // CORREÇÃO
+            this.id._serialized || this.id['$1'],
+
             everyone,
-            clearMedia,
+            clearMedia
         );
     }
-
     /**
      * Stars this message
      */
