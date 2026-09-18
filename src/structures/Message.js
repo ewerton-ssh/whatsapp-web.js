@@ -519,14 +519,10 @@ class Message extends Base {
             this.id.$1 ||
             `${this.id.fromMe}_${this.id.remote}_${this.id.id}`;
 
-        console.log('[DOWNLOAD MEDIA DEBUG] ID:', mediaId);
-
         const result = await this.client.pupPage.evaluate(async (msgId) => {
-            console.log('[BROWSER] resolveMediaBlob ID:', msgId);
 
             const resolved = await window.WWebJS.resolveMediaBlob(msgId);
 
-            console.log('[BROWSER] resolveMediaBlob result:', !!resolved);
 
             if (!resolved) return null;
 
@@ -541,13 +537,6 @@ class Message extends Base {
                 filesize: resolved.filesize,
             };
         }, mediaId);
-
-        console.log('[DOWNLOAD MEDIA DEBUG] Result:', result ? {
-            mimetype: result.mimetype,
-            filename: result.filename,
-            filesize: result.filesize,
-            dataLength: result.data?.length,
-        } : null);
 
         if (!result) return undefined;
 
