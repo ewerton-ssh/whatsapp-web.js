@@ -2205,17 +2205,27 @@ class Client extends EventEmitter {
     async getProfilePicUrl(contactId) {
         const profilePic = await this.pupPage.evaluate(async (contactId) => {
             try {
-                const chat = await window.WWebJS.getChat(contactId);
-                return await window
-                    .require('WAWebContactProfilePicThumbBridge')
-                    .requestProfilePicFromServer(chat);
+                const wid = window
+                    .require('WAWebWidFactory')
+                    .createWid(contactId);
+
+                const pictures = window
+                    .require('WAWebCollections')
+                    .ProfilePicThumb;
+
+                const picture =
+                    pictures.get(wid) ||
+                    (await pictures.find(wid));
+
+                return picture?.eurl;
             } catch (err) {
-                if (err.name === 'ServerStatusCodeError') return undefined;
+                if (err.name === 'ServerStatusCodeError') {
+                    return undefined;
+                }
                 throw err;
             }
         }, contactId);
-
-        return profilePic ? profilePic.eurl : undefined;
+        return profilePic;
     }
 
     /**
